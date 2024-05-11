@@ -1,10 +1,4 @@
-export enum ColorsEnum {
-    red = 1,
-    yellow = 2,
-    green = 3,
-    blue = 4,
-    orange = 5
-}
+
 
 export class Bottle {
     private slotsColors: Array<number> = [];

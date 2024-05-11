@@ -1,7 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Bottle } from '../models/bottle'
-import { ColorsEnum } from '../models/bottle'
+import { ColorsEnum } from '../models/mixingSlotsColors'
 import { MixingSlotsColors } from '../models/mixingSlotsColors'
 
 export default defineComponent({
@@ -9,8 +8,6 @@ export default defineComponent({
 
     data() {
         return {
-            bottle1: new Bottle(4),
-            bottle2: new Bottle(4),
             bottlesArray: new MixingSlotsColors(3, 4),
             ColorsList: ColorsEnum,
         };
@@ -21,24 +18,22 @@ export default defineComponent({
         }
     },
     methods: {
-        setSlotColor(itemSlotValue) {
-            let color = '';
+        setSlotColor(itemSlotValue: any) {
+            let colorClassValue = '';
             for (let itemSlotColor in this.ColorsList) {
                 if (itemSlotValue === this.ColorsList[itemSlotColor]) {
-                    color = itemSlotColor;
+                    colorClassValue = itemSlotColor;
                 }
             }
-            return color;
+            return colorClassValue;
         }
-    },
-    mounted() {
     },
 });
 </script>
 <template>
     <div class="container">
         <ul class="bottle" v-for="(itemBottle, indexBottle) in getBottlesList" :key="indexBottle">
-            <li v-for="(itemSlot, indexItemSlote) in itemBottle.slotsColors" :key="indexItemSlote"
+            <li v-for="(itemSlot, indexItemSlote) in itemBottle.getSlotsCollors()" :key="indexItemSlote"
                 :class="[setSlotColor(itemSlot), 'slot']"></li>
         </ul>
 
@@ -57,7 +52,7 @@ export default defineComponent({
     list-style: none;
     border: 2px solid darkgray;
     border-top: 0;
-    width: 120px;
+    width: 70px;
     padding: 0;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
@@ -73,7 +68,7 @@ export default defineComponent({
 }
 
 .slot {
-    width: 120px;
+    width: 70px;
     height: 50px;
 }
 
