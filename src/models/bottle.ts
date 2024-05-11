@@ -12,13 +12,16 @@ export class Bottle {
 
     constructor(slotsCount: number) {
         this.slotsColors = [];
-        this.slotsCount = slotsCount;
+        if (slotsCount >= 0) {
+            this.slotsCount = slotsCount;
+        } else throw new Error('Количество слотов не может быть отрицательным');
+
     }
 
     addSlotColor(slotColor: number): void {
         if (this.slotsColors.length <= this.slotsCount) {
             this.slotsColors.push(slotColor)
-        } else return;
+        } else throw new Error('Бутылка переполнена');
     }
 
     getLastSlot(): number {
@@ -29,15 +32,11 @@ export class Bottle {
         return this.slotsColors;
     }
 
-    fillAllSlotsWithColors(): void {
-        let colorValues = Object.values(ColorsEnum).filter(Number.isInteger) as number[]
-        colorValues = colorValues.slice(0, this.slotsCount);
-        for (let color of colorValues) {
-            this.addSlotColor(color);
-        }
+    setSlotsColors(slotsColors: Array<number>): any {
+        this.slotsColors = slotsColors;
     }
 
-    getUpsidedownSlotsColors(): Array<number> {
-        return this.slotsColors.reverse();
+    getUpsidedownSlotsColors(): void {
+        this.slotsColors.reverse();
     }
 }
