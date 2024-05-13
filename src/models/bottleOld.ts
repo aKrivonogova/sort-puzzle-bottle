@@ -1,5 +1,4 @@
 
-
 export class Bottle {
     private slotsColors: Array<number> = [];
     private slotsCount: number;

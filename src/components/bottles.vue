@@ -1,40 +1,46 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { ColorsEnum } from '../models/mixingSlotsColors'
-import { MixingSlotsColors } from '../models/mixingSlotsColors'
+import Bottle from '@/domains/Bottle';
+import Liquid from '@/domains/Liquid';
+import BottleFactory from '@/domains/BottleFactory'
+
 
 export default defineComponent({
     name: 'bottle',
-
     data() {
         return {
-            bottlesArray: new MixingSlotsColors(3, 4),
-            ColorsList: ColorsEnum,
+            bottles: [] as Bottle<Liquid>[],
+            bottleFactory: new BottleFactory(),
+            emptyBottle: new Bottle<Liquid>(),
+            BOTTLES_COUNT: 5,
         };
     },
     computed: {
-        getBottlesList() {
-            return this.bottlesArray.getBottlesList();
+        getBottlesList(){
+            return this.bottles
         }
     },
     methods: {
-        setSlotColor(itemSlotValue: any) {
-            let colorClassValue = '';
-            for (let itemSlotColor in this.ColorsList) {
-                if (itemSlotValue === this.ColorsList[itemSlotColor]) {
-                    colorClassValue = itemSlotColor;
-                }
-            }
-            return colorClassValue;
+        getCurrentColor(itemColor: Liquid) {
+            return itemColor.getColor();
         }
     },
+
+    mounted() {
+        for (let i = 0; i < this.BOTTLES_COUNT; i++) {
+            this.bottles.push(this.bottleFactory.createBottle());
+        }
+        this.bottles.push(this.emptyBottle);
+    },
+
 });
 </script>
 <template>
     <div class="container">
-        <ul class="bottle" v-for="(itemBottle, indexBottle) in getBottlesList" :key="indexBottle">
-            <li v-for="(itemSlot, indexItemSlote) in itemBottle.getSlotsCollors()" :key="indexItemSlote"
-                :class="[setSlotColor(itemSlot), 'slot']"></li>
+        <ul class="bottle" v-for="(itemBottle, indexBottle) in getBottlesList" :key="indexBottle" :style="{minHeight: BOTTLES_COUNT * 50 + 'px'}">
+            <li v-for="(itemColor, indexItemColor) in itemBottle.getValues()" :key="indexItemColor"
+                :class="[getCurrentColor(itemColor), 'slot']" >
+            </li>
         </ul>
 
     </div>
@@ -46,34 +52,35 @@ export default defineComponent({
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: #494f6b;
 }
 
 .bottle {
     list-style: none;
     border: 2px solid darkgray;
-    border-top: 0;
-    width: 70px;
-    padding: 0;
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
+    width: 50px;
+    padding: 30px 0 0 0;
+    border-bottom-left-radius: 25px;
+    border-bottom-right-radius: 25px;
     margin-right: 40px;
-
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
 }
-
 
 
 .slot:last-of-type {
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 25px;
+    border-bottom-right-radius: 25px;
 }
 
 .slot {
-    width: 70px;
+    width: 50px;
     height: 50px;
 }
 
 .green {
-    background-color: aquamarine;
+    background-color: #00AF64;
 }
 
 .red {
@@ -85,10 +92,18 @@ export default defineComponent({
 }
 
 .blue {
-    background-color: aqua;
+    background-color: #534ED9;
 }
 
 .orange {
     background-color: orange;
+}
+
+.violet{
+    background-color: #6F0AAA;
+}
+
+.pink{
+    background-color: deeppink;
 }
 </style>

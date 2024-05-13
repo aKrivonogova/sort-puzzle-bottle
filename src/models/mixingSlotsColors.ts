@@ -1,4 +1,4 @@
-import { Bottle } from './bottle'
+import { Bottle } from './bottleOld'
 
 export enum ColorsEnum {
     red = 1,
@@ -19,7 +19,6 @@ export class MixingSlotsColors {
             bottleObject.setSlotsColors(this.getCurrentNumberColors());
             this.bottlesList.push(bottleObject);
         }
-        this.splitCollection(this.slotsCount, this.shufleCompletedCollectionColors());
     }
 
     getCurrentNumberColors(): Array<number> {
@@ -38,8 +37,8 @@ export class MixingSlotsColors {
         return completeCollectionColors;
     }
 
-    shufleCompletedCollectionColors():Array<number> {
-        const shuffledCollectionColors = this.createCompleteCollectionColors().slice();
+    shufleCompletedCollectionColors(): Array<any> {
+        let shuffledCollectionColors = this.createCompleteCollectionColors().slice();
         for (let itemColor = shuffledCollectionColors.length - 1; itemColor > 0; itemColor--) {
             const randomColorValue = Math.floor(Math.random() * (itemColor + 1));
             [shuffledCollectionColors[itemColor], shuffledCollectionColors[randomColorValue]] = [shuffledCollectionColors[randomColorValue], shuffledCollectionColors[itemColor]];
@@ -47,12 +46,15 @@ export class MixingSlotsColors {
         return shuffledCollectionColors;
     }
 
+    updateCollectionColors(): void {
+        this.splitCollection(this.slotsCount, this.shufleCompletedCollectionColors());
+    }
+
     splitCollection(chunkSize: number, collection: Array<any>): void {
         for (let itemCollectionColors in this.getBottlesList()) {
             for (let itemColor = 0; itemColor < collection.length; itemColor += chunkSize) {
-                let localCollection: Array<number> = collection.slice(itemColor, itemColor + chunkSize);
-                console.log(localCollection)
-                this.getBottlesList()[itemCollectionColors].setSlotsColors(localCollection);
+                 let slicedCollection: Array<number> = collection.slice(itemColor, itemColor + chunkSize);
+                 this.getBottlesList()[itemCollectionColors].setSlotsColors(slicedCollection);
             }
         }
     }
