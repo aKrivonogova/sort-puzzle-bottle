@@ -13,16 +13,46 @@ export default defineComponent({
             bottleFactory: new BottleFactory(),
             emptyBottle: new Bottle<Liquid>(),
             BOTTLES_COUNT: 5,
+            sourceBottleIndex: null as null | number,
+            targetBottleIndex: null as null | number
         };
     },
     computed: {
-        getBottlesList(){
+        getBottlesList() {
             return this.bottles
         }
     },
     methods: {
         getCurrentColor(itemColor: Liquid) {
             return itemColor.getColor();
+        },
+
+        selectBottle(indexOfBottle: number | null): void {
+            if (!this.sourceBottleIndex) {
+                this.sourceBottleIndex = indexOfBottle;
+                console.log(this.sourceBottleIndex)
+                return;
+            }
+            if (this.sourceBottleIndex === indexOfBottle) {
+                this.sourceBottleIndex = null;
+                return
+            }
+            this.targetBottleIndex = indexOfBottle;
+            console.log(this.targetBottleIndex)
+        },
+
+        transferBottleLiquid(sourceBottleIndex: number, targetBottleIndex: number): void {
+            const pouredLiquid: Liquid | undefined = this.bottles[sourceBottleIndex].pourOut();
+            if (!pouredLiquid) {
+                console.log(pouredLiquid)
+                return
+            }
+            this.bottles[targetBottleIndex].pour(pouredLiquid);
+        },
+
+        resetSelectedBottles(): void {
+            this.sourceBottleIndex = null;
+            this.targetBottleIndex = null;
         }
     },
 
@@ -33,13 +63,28 @@ export default defineComponent({
         this.bottles.push(this.emptyBottle);
     },
 
+    watch: {
+        targetBottleIndex() {
+            if (!this.targetBottleIndex || !this.sourceBottleIndex ) {
+                return
+            }
+            this.transferBottleLiquid(this.sourceBottleIndex, this.targetBottleIndex);
+            this.resetSelectedBottles();
+            console.log(this.sourceBottleIndex);
+
+            console.log(this.targetBottleIndex);
+        }
+    }
+
 });
 </script>
 <template>
     <div class="container">
-        <ul class="bottle" v-for="(itemBottle, indexBottle) in getBottlesList" :key="indexBottle" :style="{minHeight: BOTTLES_COUNT * 50 + 'px'}">
+        <ul class="bottle" v-for="(itemBottle, indexBottle) in getBottlesList" :key="indexBottle"
+            :style="{ minHeight: BOTTLES_COUNT * 50 + 'px' }" @click="selectBottle(indexBottle)">
             <li v-for="(itemColor, indexItemColor) in itemBottle.getValues()" :key="indexItemColor"
-                :class="[getCurrentColor(itemColor), 'slot']" >
+                :class="[getCurrentColor(itemColor), 'slot']">
+
             </li>
         </ul>
 
@@ -99,11 +144,11 @@ export default defineComponent({
     background-color: orange;
 }
 
-.violet{
+.violet {
     background-color: #6F0AAA;
 }
 
-.pink{
+.pink {
     background-color: deeppink;
 }
 </style>

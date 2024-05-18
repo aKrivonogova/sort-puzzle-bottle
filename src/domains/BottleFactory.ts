@@ -16,7 +16,6 @@ export default class BottleFactory {
 
     private getRandomLiquidColor(): liquidColors {
         const colors = Object.values(liquidColors);
-        console.log(colors);
         const randomIndex = Math.floor(Math.random() * colors.length);
         return colors[randomIndex] as liquidColors;
     }
@@ -33,11 +32,4 @@ export default class BottleFactory {
     }
 }
 
-// // to vue
-// const BOTTLES_COUNT = 5;
-// const bottleFactory = new BottleFactory();
-// const bottles: Bottle<Liquid>[] = [];
-
-// for (let i = 0; i < BOTTLES_COUNT; i++) {
-//     bottles.push(bottleFactory.createBottle());
-// }
+ 
