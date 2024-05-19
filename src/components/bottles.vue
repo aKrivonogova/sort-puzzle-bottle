@@ -5,16 +5,20 @@ import Liquid from '@/domains/Liquid';
 import BottleFactory from '@/domains/BottleFactory'
 
 
+
 export default defineComponent({
     name: 'bottle',
     data() {
         return {
+
             bottles: [] as Bottle<Liquid>[],
             bottleFactory: new BottleFactory(),
             emptyBottle: new Bottle<Liquid>(),
             BOTTLES_COUNT: 5,
-            sourceBottleIndex: null as null | number,
-            targetBottleIndex: null as null | number
+            sourceBottleId: null as null | string,
+            targetBottleId: null as null | string,
+            DEFAULT_BOTTLE_CAPACITY: 4 as number
+
         };
     },
     computed: {
@@ -27,32 +31,34 @@ export default defineComponent({
             return itemColor.getColor();
         },
 
-        selectBottle(indexOfBottle: number | null): void {
-            if (!this.sourceBottleIndex) {
-                this.sourceBottleIndex = indexOfBottle;
-                console.log(this.sourceBottleIndex)
+        selectBottle(bottleId: string | null): void {
+            if (this.sourceBottleId === null) {
+                this.sourceBottleId = bottleId;
                 return;
             }
-            if (this.sourceBottleIndex === indexOfBottle) {
-                this.sourceBottleIndex = null;
+            if (this.sourceBottleId === bottleId) {
+                this.sourceBottleId = null;
                 return
             }
-            this.targetBottleIndex = indexOfBottle;
-            console.log(this.targetBottleIndex)
+            this.targetBottleId = bottleId;
         },
 
-        transferBottleLiquid(sourceBottleIndex: number, targetBottleIndex: number): void {
-            const pouredLiquid: Liquid | undefined = this.bottles[sourceBottleIndex].pourOut();
+
+        getBottleById(bottleId: string): Bottle<Liquid> {
+            return this.bottles.find((bottleItem) => bottleItem.getId() === bottleId) as Bottle<Liquid>;
+        },
+
+        transferBottleLiquid(sourceBottleId: string, targetBottleId: string): void {
+            const pouredLiquid: Liquid | undefined = this.getBottleById(sourceBottleId).pourOut();
             if (!pouredLiquid) {
-                console.log(pouredLiquid)
                 return
             }
-            this.bottles[targetBottleIndex].pour(pouredLiquid);
+            this.getBottleById(targetBottleId).pour(pouredLiquid);
         },
 
         resetSelectedBottles(): void {
-            this.sourceBottleIndex = null;
-            this.targetBottleIndex = null;
+            this.sourceBottleId = null;
+            this.sourceBottleId = null;
         }
     },
 
@@ -64,15 +70,12 @@ export default defineComponent({
     },
 
     watch: {
-        targetBottleIndex() {
-            if (!this.targetBottleIndex || !this.sourceBottleIndex ) {
+        targetBottleId() {
+            if (!this.targetBottleId || !this.sourceBottleId) {
                 return
             }
-            this.transferBottleLiquid(this.sourceBottleIndex, this.targetBottleIndex);
+            this.transferBottleLiquid(this.sourceBottleId, this.targetBottleId);
             this.resetSelectedBottles();
-            console.log(this.sourceBottleIndex);
-
-            console.log(this.targetBottleIndex);
         }
     }
 
@@ -80,11 +83,10 @@ export default defineComponent({
 </script>
 <template>
     <div class="container">
-        <ul class="bottle" v-for="(itemBottle, indexBottle) in getBottlesList" :key="indexBottle"
-            :style="{ minHeight: BOTTLES_COUNT * 50 + 'px' }" @click="selectBottle(indexBottle)">
+        <ul class="bottle" v-for="(itemBottle, indexBottle) in getBottlesList" :key="itemBottle.getId()"
+            :style="{ minHeight: BOTTLES_COUNT * 50 + 'px' }" @click="selectBottle(itemBottle.getId())">
             <li v-for="(itemColor, indexItemColor) in itemBottle.getValues()" :key="indexItemColor"
                 :class="[getCurrentColor(itemColor), 'slot']">
-
             </li>
         </ul>
 
