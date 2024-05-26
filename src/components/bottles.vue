@@ -4,27 +4,24 @@ import Bottle from '@/domains/Bottle';
 import Liquid from '@/domains/Liquid';
 import BottleFactory from '@/domains/BottleFactory'
 
-
-
 export default defineComponent({
     name: 'bottle',
     data() {
         return {
-
             bottles: [] as Bottle<Liquid>[],
             bottleFactory: new BottleFactory(),
             emptyBottle: new Bottle<Liquid>(),
             BOTTLES_COUNT: 5,
             sourceBottleId: null as null | string,
             targetBottleId: null as null | string,
-            DEFAULT_BOTTLE_CAPACITY: 4 as number
-
+            DEFAULT_BOTTLE_CAPACITY: 4 as number,
+            isAcceptTransfer: true as boolean,
         };
     },
     computed: {
         getBottlesList() {
             return this.bottles
-        }
+        },
     },
     methods: {
         getCurrentColor(itemColor: Liquid) {
@@ -40,12 +37,16 @@ export default defineComponent({
                 this.sourceBottleId = null;
                 return
             }
+
             this.targetBottleId = bottleId;
         },
 
-
         getBottleById(bottleId: string): Bottle<Liquid> {
             return this.bottles.find((bottleItem) => bottleItem.getId() === bottleId) as Bottle<Liquid>;
+        },
+
+        isFullBottle(targetBottleId: string): boolean {
+            return this.getBottleById(targetBottleId).getSize() === this.DEFAULT_BOTTLE_CAPACITY
         },
 
         transferBottleLiquid(sourceBottleId: string, targetBottleId: string): void {
@@ -58,8 +59,20 @@ export default defineComponent({
 
         resetSelectedBottles(): void {
             this.sourceBottleId = null;
-            this.sourceBottleId = null;
-        }
+            this.targetBottleId = null;
+        },
+
+        isEmptyBottlesId(): boolean {
+            return !this.targetBottleId || !this.sourceBottleId
+        },
+
+        getCurrentLiquid(bottleId: string): string {
+            return this.getBottleById(bottleId).getFirstValue().getColor();
+        },
+
+        isSameColors(targetBottleId: string, sourceBottleId: string) {
+            return this.getCurrentLiquid(targetBottleId) === this.getCurrentLiquid(sourceBottleId);
+        },
     },
 
     mounted() {
@@ -71,10 +84,25 @@ export default defineComponent({
 
     watch: {
         targetBottleId() {
+            // проверка на не выбранные бутылки 
             if (!this.targetBottleId || !this.sourceBottleId) {
                 return
+            };
+
+            // Проверка на полную бутылку 
+            if (this.isFullBottle(this.targetBottleId)) {
+                this.resetSelectedBottles();
+                return
             }
-            this.transferBottleLiquid(this.sourceBottleId, this.targetBottleId);
+            // Проверка на одинаковый цвет 
+            if (!this.getBottleById(this.targetBottleId).isEmptyBottle()) {
+                this.isAcceptTransfer = this.isSameColors(this.sourceBottleId, this.targetBottleId)
+            }
+
+            if (this.isAcceptTransfer) {
+                this.transferBottleLiquid(this.sourceBottleId, this.targetBottleId);
+            }
+
             this.resetSelectedBottles();
         }
     }
@@ -101,6 +129,8 @@ export default defineComponent({
     justify-content: center;
     background-color: #494f6b;
 }
+
+
 
 .bottle {
     list-style: none;
@@ -131,7 +161,7 @@ export default defineComponent({
 }
 
 .red {
-    background-color: deeppink;
+    background-color: #DC143C;
 }
 
 .yellow {

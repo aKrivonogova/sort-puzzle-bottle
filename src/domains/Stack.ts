@@ -1,5 +1,5 @@
 export default class Stack<T> {
-    private values:  T[] = [];
+    private values: T[] = [];
 
     constructor(values: T[] = []) {
         this.values = values;
@@ -24,4 +24,9 @@ export default class Stack<T> {
     public getSize(): number {
         return this.values.length;
     }
+
+    public getFirstValue(): T {
+        return this.values[0];
+    }
+
 }
