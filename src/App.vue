@@ -20,6 +20,36 @@ export default {
   padding: 0;
 }
 
+:root {
+  .green {
+    background-color: #00AF64;
+  }
+
+  .red {
+    background-color: #DC143C;
+  }
+
+  .yellow {
+    background-color: gold;
+  }
+
+  .blue {
+    background-color: #534ED9;
+  }
+
+  .orange {
+    background-color: orange;
+  }
+
+  .violet {
+    background-color: #6F0AAA;
+  }
+
+  .pink {
+    background-color: deeppink;
+  }
+}
+
 html,
 body {
   width: 100%;

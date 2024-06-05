@@ -27,8 +27,12 @@ export default class Bottle<T> extends Stack<T> {
         return this.id;
     }
 
-    public isEmptyBottle(): boolean {
-        return this.getValues().length === 0;
+    public isNotEmptyBottle(): boolean {
+        return this.getValues().length > 0;
+    }
+
+    public isNotFullBottle(currentBootleMaxCapacity: number):boolean {
+        return this.getValues().length < currentBootleMaxCapacity;
     }
 }
 

@@ -3,6 +3,9 @@ import { defineComponent } from 'vue';
 import Bottle from '@/domains/Bottle';
 import Liquid from '@/domains/Liquid';
 import BottleFactory from '@/domains/BottleFactory'
+const BOTTLES_COUNT: number = 5;
+const DEFAULT_BOTTLE_CAPACITY: number = 4;
+const DEFAULT_COUNT_EMPTY_BOTTLES: number = 2;
 
 export default defineComponent({
     name: 'bottle',
@@ -10,25 +13,58 @@ export default defineComponent({
         return {
             bottles: [] as Bottle<Liquid>[],
             bottleFactory: new BottleFactory(),
-            emptyBottle: new Bottle<Liquid>(),
-            BOTTLES_COUNT: 5,
+            bottlesMap: new Map() as Map<string, Bottle<Liquid>>,
             sourceBottleId: null as null | string,
             targetBottleId: null as null | string,
-            DEFAULT_BOTTLE_CAPACITY: 4 as number,
-            isAcceptTransfer: true as boolean,
         };
     },
+
+    created() {
+        this.createdBottlesMap();
+        for (let index = 0; index < this.getDefaultCountEmptyBottles; index++) {
+            this.addEmptyBottlesToBottlesMap();
+        }
+    },
+
     computed: {
-        getBottlesList() {
-            return this.bottles
+        getBottlesList(): any {
+            return Array.from(this.bottlesMap.entries()).map(([id, bottle]) => ({ id, bottle }));
         },
+
+        getDefaultBootleCapacity(): number {
+            return DEFAULT_BOTTLE_CAPACITY;
+        },
+
+        getDefaultCountEmptyBottles(): number {
+            return DEFAULT_COUNT_EMPTY_BOTTLES
+        }
     },
     methods: {
+        createdBottlesMap() {
+            for (let i = 0; i < BOTTLES_COUNT; i++) {
+                const newBottle = this.bottleFactory.createBottle();
+                this.setBottlesMapValue(newBottle);
+            }
+        },
+
+        addEmptyBottlesToBottlesMap() {
+            const newEmptyBottle = this.bottleFactory.createEmptyBottle();
+            this.setBottlesMapValue(newEmptyBottle)
+        },
+
+        setBottlesMapValue(bottle: Bottle<Liquid>) {
+            this.bottlesMap.set(bottle.getId(), bottle);
+        },
+
         getCurrentColor(itemColor: Liquid) {
             return itemColor.getColor();
         },
 
-        selectBottle(bottleId: string | null): void {
+        getBottlesCount(): number {
+            return BOTTLES_COUNT;
+        },
+
+        selectBottle(bottleId: string): void {
             if (this.sourceBottleId === null) {
                 this.sourceBottleId = bottleId;
                 return;
@@ -41,87 +77,54 @@ export default defineComponent({
             this.targetBottleId = bottleId;
         },
 
-        getBottleById(bottleId: string): Bottle<Liquid> {
-            return this.bottles.find((bottleItem) => bottleItem.getId() === bottleId) as Bottle<Liquid>;
+        getBottleById(bottleId: string): any {
+            return this.bottlesMap.get(bottleId)
         },
 
-        isFullBottle(targetBottleId: string): boolean {
-            return this.getBottleById(targetBottleId).getSize() === this.DEFAULT_BOTTLE_CAPACITY
-        },
 
-        transferBottleLiquid(sourceBottleId: string, targetBottleId: string): void {
-            const pouredLiquid: Liquid | undefined = this.getBottleById(sourceBottleId).pourOut();
-            if (!pouredLiquid) {
+        pourLiquid(sourceBottleId: string, targetBottleId: string): void {
+
+            if (!this.getBottleById(sourceBottleId).isNotEmptyBottle()) {
                 return
             }
+            if (!this.getBottleById(targetBottleId).isNotFullBottle(this.getDefaultBootleCapacity)) {
+                return
+            }
+
+            const pouredLiquid: Liquid = this.getBottleById(sourceBottleId).pourOut();
             this.getBottleById(targetBottleId).pour(pouredLiquid);
         },
 
-        resetSelectedBottles(): void {
+        resetSelectedBottles() {
             this.sourceBottleId = null;
             this.targetBottleId = null;
-        },
-
-        isEmptyBottlesId(): boolean {
-            return !this.targetBottleId || !this.sourceBottleId
-        },
-
-        getCurrentLiquid(bottleId: string): string {
-            return this.getBottleById(bottleId).getFirstValue().getColor();
-        },
-
-        isSameColors(targetBottleId: string, sourceBottleId: string) {
-            return this.getCurrentLiquid(targetBottleId) === this.getCurrentLiquid(sourceBottleId);
-        },
-    },
-
-    mounted() {
-        for (let i = 0; i < this.BOTTLES_COUNT; i++) {
-            this.bottles.push(this.bottleFactory.createBottle());
         }
-        this.bottles.push(this.emptyBottle);
     },
-
     watch: {
         targetBottleId() {
-            // проверка на не выбранные бутылки 
             if (!this.targetBottleId || !this.sourceBottleId) {
                 return
-            };
-
-            // Проверка на полную бутылку 
-            if (this.isFullBottle(this.targetBottleId)) {
-                this.resetSelectedBottles();
-                return
             }
-            // Проверка на одинаковый цвет 
-            if (!this.getBottleById(this.targetBottleId).isEmptyBottle()) {
-                this.isAcceptTransfer = this.isSameColors(this.sourceBottleId, this.targetBottleId)
-            }
-
-            if (this.isAcceptTransfer) {
-                this.transferBottleLiquid(this.sourceBottleId, this.targetBottleId);
-            }
-
+            this.pourLiquid(this.sourceBottleId, this.targetBottleId);
             this.resetSelectedBottles();
         }
     }
 
-});
+})
 </script>
 <template>
-    <div class="container">
-        <ul class="bottle" v-for="(itemBottle, indexBottle) in getBottlesList" :key="itemBottle.getId()"
-            :style="{ minHeight: BOTTLES_COUNT * 50 + 'px' }" @click="selectBottle(itemBottle.getId())">
-            <li v-for="(itemColor, indexItemColor) in itemBottle.getValues()" :key="indexItemColor"
-                :class="[getCurrentColor(itemColor), 'slot']">
+    <div class="bottles-game-container">
+        <ul class="bottle" v-for="(itemBottle, keyItemBottle) in getBottlesList" :key="keyItemBottle"
+            :style="{ minHeight: getBottlesCount() * 50 + 'px' }" @click="selectBottle(itemBottle.id)">
+
+            <li v-for="(itemColor, indexItemColor) in itemBottle.bottle.getValues()" :key="indexItemColor"
+                :class="[getCurrentColor(itemColor), 'color']">
             </li>
         </ul>
-
     </div>
 </template>
 <style>
-.container {
+.bottles-game-container {
     width: 100%;
     height: 100vh;
     display: flex;
@@ -129,8 +132,6 @@ export default defineComponent({
     justify-content: center;
     background-color: #494f6b;
 }
-
-
 
 .bottle {
     list-style: none;
@@ -146,41 +147,15 @@ export default defineComponent({
 }
 
 
-.slot:last-of-type {
+.color:last-of-type {
     border-bottom-left-radius: 25px;
     border-bottom-right-radius: 25px;
 }
 
-.slot {
+.color {
     width: 50px;
     height: 50px;
 }
 
-.green {
-    background-color: #00AF64;
-}
 
-.red {
-    background-color: #DC143C;
-}
-
-.yellow {
-    background-color: gold;
-}
-
-.blue {
-    background-color: #534ED9;
-}
-
-.orange {
-    background-color: orange;
-}
-
-.violet {
-    background-color: #6F0AAA;
-}
-
-.pink {
-    background-color: deeppink;
-}
 </style>

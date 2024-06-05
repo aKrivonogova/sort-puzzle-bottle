@@ -20,6 +20,10 @@ export default class BottleFactory {
         return colors[randomIndex] as liquidColors;
     }
 
+    public createEmptyBottle(): Bottle<Liquid>{
+         return new Bottle();
+    }
+
     public createBottle(): Bottle<Liquid> {
         const liquidSlotsToFill: number = this.getCurrentLiquidSlotsToFill();
         const liquids: Liquid[] = [];
