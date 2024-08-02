@@ -3,45 +3,47 @@ import { defineComponent } from 'vue';
 import Bottle from '@/domains/Bottle';
 import Liquid from '@/domains/Liquid';
 import BottleFactory from '@/domains/BottleFactory'
-const BOTTLES_COUNT: number = 5;
-const DEFAULT_BOTTLE_CAPACITY: number = 4;
-const DEFAULT_COUNT_EMPTY_BOTTLES: number = 2;
+
+export interface IBottlesConfig {
+    BOTTLES_COUNT: number;
+    DEFAULT_BOTTLE_CAPACITY: number;
+    DEFAULT_COUNT_EMPTY_BOTTLES: number;
+}
+
+export const config: IBottlesConfig = {
+    BOTTLES_COUNT: 5,
+    DEFAULT_BOTTLE_CAPACITY: 4,
+    DEFAULT_COUNT_EMPTY_BOTTLES: 2,
+}
 
 export default defineComponent({
     name: 'bottle',
     data() {
         return {
+            config,
             bottles: [] as Bottle<Liquid>[],
             bottleFactory: new BottleFactory(),
             bottlesMap: new Map() as Map<string, Bottle<Liquid>>,
-            sourceBottleId: null as null | string,
-            targetBottleId: null as null | string,
+            sourceBottleId: "" as string,
+            targetBottleId: "" as string,
         };
     },
 
     created() {
         this.createdBottlesMap();
-        for (let index = 0; index < this.getDefaultCountEmptyBottles; index++) {
+        for (let index = 0; index < this.config.DEFAULT_COUNT_EMPTY_BOTTLES; index++) {
             this.addEmptyBottlesToBottlesMap();
         }
     },
 
     computed: {
-        getBottlesList(): any {
-            return Array.from(this.bottlesMap.entries()).map(([id, bottle]) => ({ id, bottle }));
+        getBottlesList(): any {    
+            return  [...this!.bottlesMap?.values()];
         },
-
-        getDefaultBootleCapacity(): number {
-            return DEFAULT_BOTTLE_CAPACITY;
-        },
-
-        getDefaultCountEmptyBottles(): number {
-            return DEFAULT_COUNT_EMPTY_BOTTLES
-        }
     },
     methods: {
         createdBottlesMap() {
-            for (let i = 0; i < BOTTLES_COUNT; i++) {
+            for (let i = 0; i < config.BOTTLES_COUNT; i++) {
                 const newBottle = this.bottleFactory.createBottle();
                 this.setBottlesMapValue(newBottle);
             }
@@ -60,17 +62,13 @@ export default defineComponent({
             return itemColor.getColor();
         },
 
-        getBottlesCount(): number {
-            return BOTTLES_COUNT;
-        },
-
         selectBottle(bottleId: string): void {
-            if (this.sourceBottleId === null) {
+            if (!this.sourceBottleId) {
                 this.sourceBottleId = bottleId;
                 return;
             }
             if (this.sourceBottleId === bottleId) {
-                this.sourceBottleId = null;
+                this.sourceBottleId = "";
                 return
             }
 
@@ -87,7 +85,7 @@ export default defineComponent({
             if (!this.getBottleById(sourceBottleId).isNotEmptyBottle()) {
                 return
             }
-            if (!this.getBottleById(targetBottleId).isNotFullBottle(this.getDefaultBootleCapacity)) {
+            if (!this.getBottleById(targetBottleId).isNotFullBottle(this.config.DEFAULT_BOTTLE_CAPACITY)) {
                 return
             }
 
@@ -96,8 +94,8 @@ export default defineComponent({
         },
 
         resetSelectedBottles() {
-            this.sourceBottleId = null;
-            this.targetBottleId = null;
+            this.sourceBottleId = "";
+            this.targetBottleId = "";
         }
     },
     watch: {
@@ -114,16 +112,21 @@ export default defineComponent({
 </script>
 <template>
     <div class="bottles-game-container">
-        <ul class="bottle" v-for="(itemBottle, keyItemBottle) in getBottlesList" :key="keyItemBottle"
-            :style="{ minHeight: getBottlesCount() * 50 + 'px' }" @click="selectBottle(itemBottle.id)">
+        <ul class="bottle" v-for="(itemBottle) in getBottlesList" :key="itemBottle.getId()"
+            :style="{ minHeight: config.BOTTLES_COUNT * 50 + 'px' }" @click="selectBottle(itemBottle.getId())"
+            :class="{ activeSource: itemBottle.getId() === sourceBottleId}">
 
-            <li v-for="(itemColor, indexItemColor) in itemBottle.bottle.getValues()" :key="indexItemColor"
+            <li v-for="(itemColor, indexItemColor) in itemBottle.getValues()" :key="indexItemColor"
                 :class="[getCurrentColor(itemColor), 'color']">
             </li>
         </ul>
     </div>
 </template>
 <style>
+.bottle.activeSource {
+    outline: 2px solid forestgreen;
+}
+
 .bottles-game-container {
     width: 100%;
     height: 100vh;
@@ -156,6 +159,4 @@ export default defineComponent({
     width: 50px;
     height: 50px;
 }
-
-
 </style>
